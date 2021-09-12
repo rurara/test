@@ -1,7 +1,7 @@
 # api/__init__.py
 from flask import Flask
 from flask_graphql import GraphQLView
-from api import schema
+from api.schema import schema
  
 def create_app():
   # Flask Application 생성

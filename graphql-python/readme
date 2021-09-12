@@ -1,0 +1,3 @@
+https://heodolf.tistory.com/109
+pip install python-dotenv flask flask-graphql graphene graphene-mongo mongoengine mongomock
+http://localhost:3000/graphql

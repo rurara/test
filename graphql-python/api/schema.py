@@ -1,32 +1,36 @@
-# api/models.py
-import datetime
+
+# api/schema.py
+import graphene
  
-from mongoengine import Document
-from mongoengine.fields import StringField, BooleanField, IntField
+from api.models import RankModel, RankType
  
-from graphene_mongo import MongoengineObjectType
- 
-# MongoDB Model
-class RankModel(Document):
-  meta = {'collection': 'ranking'}
-  mode = StringField()
-  name = StringField()
-  score = IntField()
-  is_mobile = BooleanField()
-  reg_dttm = StringField()
-  upd_dttm = StringField()
+# Query 설정
+class Query(graphene.ObjectType):  
+  # 모든 랭킹 목록.
+  ranks = graphene.List(RankType)
   
- 
-# Schema Type
-class RankType(MongoengineObjectType):
-  class Meta:
-    model = RankModel
+  # 특정 모드에 대한 랭킹 목록.
+  ranks_for_mode = graphene.List(RankType, mode=graphene.String(required=True))
   
-  # reg_dttm을 출력할 때 실행되는 로직. ( 날짜형식 변경 )
-  def resolve_reg_dttm(parent, info, **kwargs):
-    return datetime.datetime.strptime(parent.reg_dttm, "%Y%m%d%H%M%S").strftime("%Y-%m-%d %H:%M:%S")
+  # 특정 랭킹에 대한 정보.
+  rank = graphene.Field(RankType, id=graphene.String(required=True))
  
-  # upd_dttm을 출력할 때 실행되는 로직. ( 날짜형식 변경 )
-  def resolve_upd_dttm(parent, info, **kwargs):
-    return datetime.datetime.strptime(parent.upd_dttm, "%Y%m%d%H%M%S").strftime("%Y-%m-%d %H:%M:%S")
+  # MongoDB에서 모든 랭킹 목록을 조회
+  def resolve_ranks(parent, info):
+    return RankModel.objects.all()
     
+  # MongoDB에서 특정 모드의 모든 랭킹 목록을 조회
+  def resolve_ranks_for_mode(parent, info, mode):
+    return RankModel.objects(mode=mode).all()
+ 
+  # MongoDB에서 특정 랭킹을 조회.
+  def resolve_rank(parent, info, id):
+    return RankModel.objects.get(id=id)
+ 
+# Schema 생성
+schema = graphene.Schema(
+  query=Query,
+  types=[
+    RankType
+  ]
+)
